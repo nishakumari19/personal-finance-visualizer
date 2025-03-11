@@ -15,9 +15,11 @@ const dbConnect = async () => {
     cached.promise = mongoose
       .connect(MONGO_URI) 
       .then((mongoose) => {
+        console.log("MongoDB Connected!");
         return mongoose;
       })
       .catch((err) => {
+        console.error("MongoDB Connection Error:", err);
         throw err;
       });
   }
