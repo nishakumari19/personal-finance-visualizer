@@ -6,18 +6,15 @@ if (!MONGO_URI) {
   throw new Error("MONGODB_URI is missing in environment variables!");
 }
 
-
 let cached = global.mongoose || { conn: null, promise: null };
 
 const dbConnect = async () => {
   if (cached.conn) return cached.conn; 
+
   if (!cached.promise) {
     console.log("Connecting to MongoDB...");
     cached.promise = mongoose
-      .connect(MONGO_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      })
+      .connect(MONGO_URI) 
       .then((mongoose) => {
         console.log("MongoDB Connected!");
         return mongoose;
@@ -29,7 +26,7 @@ const dbConnect = async () => {
   }
 
   cached.conn = await cached.promise;
-  global.mongoose = cached; 
+  global.mongoose = cached;
   return cached.conn;
 };
 
