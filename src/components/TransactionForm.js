@@ -83,7 +83,7 @@ const TransactionForm = () => {
   };
 
   return (
-    <div className="p-6 flex flex-col lg:flex-row gap-6 items-start">
+    <div className="p-6 flex flex-col w-full lg:flex-row gap-6 items-start border-2 border-black rounded-lg">
       {/* Left Section: Form */}
       <div className="w-full sm:w-full lg:w-1/4 bg-white p-4 shadow-md rounded-lg">
         <h1 className="font-bold text-lg mb-3">Personal Finance Visualizer</h1>
