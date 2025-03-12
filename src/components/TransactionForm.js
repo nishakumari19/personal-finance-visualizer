@@ -1,30 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { Button, Input } from "@/components/ui";
 import ExpensesChart from "@/components/ExpensesChart";
 
-const TransactionForm = () => {
+const TransactionForm = ({ transactions, setTransactions }) => {
   const [form, setForm] = useState({ amount: "", date: "", description: "" });
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
-
-  const fetchTransactions = async () => {
-    try {
-      const res = await axios.get("/api/transactions");
-      setTransactions(res.data);
-    } catch (err) {
-      setError("Failed to fetch transactions");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -34,52 +16,56 @@ const TransactionForm = () => {
       alert("All fields are required!");
       return;
     }
-
+  
     try {
       const formattedData = {
-        id: editingId, // Send ID for updates
         amount: parseFloat(form.amount),
         date: new Date(form.date).toISOString(),
         description: form.description.trim(),
       };
-
+  
       let res;
       if (editingId) {
-        setTransactions((prev) =>
+        res = await axios.put("/api/transactions", { ...formattedData, id: editingId });
+        setEditingId(null);
+        setTransactions((prev) => 
           prev.map((tx) => (tx._id === editingId ? { ...tx, ...formattedData } : tx))
         );
-        res = await axios.put("/api/transactions", formattedData);
-        setEditingId(null);
       } else {
         res = await axios.post("/api/transactions", formattedData);
-        setTransactions((prev) => [{ _id: res.data._id, ...formattedData }, ...prev]);
-      }
+        const newTransaction = { _id: res.data._id, ...formattedData };
 
+        // ✅ Instantly update UI
+        setTransactions((prev) => 
+          [...prev, newTransaction].sort((a, b) => new Date(b.date) - new Date(a.date))
+        );
+      }
+  
       setForm({ amount: "", date: "", description: "" });
-      setError("");
     } catch (err) {
       console.error("API error:", err.response?.data || err.message);
-      setError("Failed to save transaction");
     }
   };
 
-  const handleEdit = (tx) => {
-    setForm({
-      amount: tx.amount.toString(),
-      date: tx.date.split("T")[0], // Extract YYYY-MM-DD
-      description: tx.description,
-    });
-    setEditingId(tx._id);
-  };
-
+  // ✅ Fix: Add handleDelete function
   const handleDelete = async (id) => {
     setTransactions((prev) => prev.filter((tx) => tx._id !== id));
+
     try {
       await axios.delete("/api/transactions", { data: { id } });
     } catch (err) {
       console.error("Delete error:", err.response?.data || err.message);
-      setError("Failed to delete transaction");
     }
+  };
+
+  // ✅ Fix: Add handleEdit function
+  const handleEdit = (tx) => {
+    setForm({
+      amount: tx.amount.toString(),
+      date: tx.date.split("T")[0], 
+      description: tx.description,
+    });
+    setEditingId(tx._id);
   };
 
   return (

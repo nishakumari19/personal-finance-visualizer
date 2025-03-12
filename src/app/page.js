@@ -2,14 +2,14 @@
 import { useEffect, useState } from "react";
 import TransactionForm from "@/components/TransactionForm";
 
-
 export default function Home() {
   const [transactions, setTransactions] = useState([]);
 
   const fetchTransactions = async () => {
     const res = await fetch("/api/transactions");
     const data = await res.json();
-    setTransactions(data);
+    
+    setTransactions(data.sort((a, b) => new Date(b.date) - new Date(a.date)));
   };
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center space-y-6 p-4">
-        <TransactionForm onTransactionAdded={fetchTransactions} />
+        <TransactionForm transactions={transactions} setTransactions={setTransactions} />
       </main>
     </div>
   );
